@@ -6,8 +6,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.widget.TextView;
+
+import com.gestordevices.structs.PenInfoPkt;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -17,6 +20,8 @@ public class MainActivity extends AppCompatActivity {
             "com.gestordevices.dspsdump.ACTION_DATA_AVAILABLE";
     private final static String DATA_BYTES =
             "com.gestordevices.dspsdump.DATA_BYTES";
+    private final static String DATA_PKT =
+            "com.gestordevices.dspsdump.DATA_PKT";
     private TextView mDataField;
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -24,7 +29,8 @@ public class MainActivity extends AppCompatActivity {
             final String action = intent.getAction();
 
             if (ACTION_DATA_AVAILABLE.equals(action)) {
-                displayData(intent.getByteArrayExtra(DATA_BYTES));
+//                displayData(intent.getByteArrayExtra(DATA_BYTES));
+                displayData((PenInfoPkt) intent.getParcelableExtra(DATA_PKT));
             }
         }
     };
@@ -47,12 +53,27 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void displayData(PenInfoPkt pkt) {
+        if (pkt != null) {
+            if (mDataField.getLineCount() >= 100) {
+                mDataField.getEditableText().delete(
+                        0,
+                        mDataField.getLayout().getLineEnd(100 - mDataField.getLineCount())
+                );
+            }
+            mDataField.append(pkt.toString() + "\n");
+        } else {
+            mDataField.setText("No data");
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         mDataField = (TextView) findViewById(com.gestordevices.showgestordata.R.id.data_value);
+        mDataField.setMovementMethod(new ScrollingMovementMethod());
     }
 
     @Override
